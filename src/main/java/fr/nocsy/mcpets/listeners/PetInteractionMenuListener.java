@@ -150,6 +150,16 @@ public class PetInteractionMenuListener implements Listener {
             name = name.replace(";;", ";").replace(";;;", ";");
             name = Utils.hex(name);
 
+			if (!p.hasPermission("mcpets.nameable")) {
+				p.sendMessage(ChatColor.WHITE + "⃽ " + ChatColor.RED + "Pet naming is locked to paid ranks. Purchase a rank from " + ChatColor.YELLOW + "mcheroes.net" + ChatColor.RED + " to unlock!");
+				return;
+			}
+
+			// ✅ silently skip if not only English letters + spaces
+			if (!name.matches("[a-zA-Z&§ ]+")) {
+				return;
+			}
+            
             final String blackListedWord = Utils.isInBlackList(name);
             if (blackListedWord != null) {
                 Language.BLACKLISTED_WORD.sendMessageFormated(p, new FormatArg("%word%", blackListedWord));
