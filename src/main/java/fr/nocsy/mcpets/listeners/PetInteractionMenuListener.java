@@ -151,7 +151,7 @@ public class PetInteractionMenuListener implements Listener {
             name = Utils.hex(name);
 
 			if (!p.hasPermission("mcpets.nameable")) {
-				p.sendMessage(ChatColor.WHITE + "⃽ " + ChatColor.RED + "Pet naming is locked to paid ranks. Purchase a rank from " + ChatColor.YELLOW + "mcheroes.net" + ChatColor.RED + " to unlock!");
+				p.sendMessage("<white>⃽ <red>Pet naming is locked to paid ranks. Purchase a rank from <yellow>mcheroes.net <red>to unlock!");
 				return;
 			}
 
