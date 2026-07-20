@@ -1,6 +1,7 @@
 package fr.nocsy.mcpets.data;
 
 import fr.nocsy.mcpets.MCPets;
+import fr.nocsy.mcpets.utils.PDCTag;
 import fr.nocsy.mcpets.data.config.FormatArg;
 import fr.nocsy.mcpets.data.config.Language;
 import fr.nocsy.mcpets.data.inventories.PetInventoryHolder;
@@ -67,8 +68,10 @@ public class PetSkin {
      * Fetch the PetSkin from the icon
      */
     public static PetSkin fromIcon(ItemStack it) {
-        if (it.hasItemMeta() && it.getItemMeta().hasItemName()) {
-            String[] code = it.getItemMeta().getItemName().split(";");
+        if (it.hasItemMeta()) {
+            String tagVal = PDCTag.get(it.getItemMeta());
+            if (tagVal == null) return null;
+            String[] code = tagVal.split(";");
             if (code.length > 0 && code[0].equals("MCPetsSkins")) {
                 String petId = code[1];
                 String skinUuid = code[2];
@@ -183,7 +186,7 @@ public class PetSkin {
      */
     private void prepareIcon() {
         ItemMeta meta = icon.getItemMeta();
-        meta.setItemName("MCPetsSkins;" + objectPet.getId() + ";" + uuid);
+        PDCTag.set(meta, "MCPetsSkins;" + objectPet.getId() + ";" + uuid);
         icon.setItemMeta(meta);
     }
 
@@ -191,11 +194,9 @@ public class PetSkin {
      * Apply the skin to the pet
      */
     public boolean apply(Pet instancePet) {
-        if (!instancePet.isStillHere())
-            return false;
+        if (!instancePet.isStillHere()) return false;
 
-        if (!instancePet.getId().equals(objectPet.getId()))
-            return false;
+        if (!instancePet.getId().equals(objectPet.getId())) return false;
 
         Location loc = instancePet.getActiveMob().getEntity().getBukkitEntity().getLocation();
 

@@ -1,10 +1,11 @@
 package fr.nocsy.mcpets.data.config;
 
-import fr.nocsy.mcpets.utils.Utils;
-import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
+
+import fr.nocsy.mcpets.utils.Utils;
+
+import net.kyori.adventure.text.Component;
 
 public enum Language {
 
@@ -32,8 +33,11 @@ public enum Language {
     EQUIPMENT_ITEM_NAME("§6Equipment"),
     EQUIPMENT_DESCRIPTION("§7Click to open your pet's equipment"),
 
-    TURNPAGE_ITEM_NAME("§6Next page §7(§e%currentPage%§8/§7%maxPage%)"),
-    TURNPAGE_ITEM_DESCRIPTION("§eRight click§7 to go forward \n§aLeft click§7 to go backward"),
+    NEXT_PAGE_ITEM_NAME("§6Next page §7(§e%currentPage%§8/§7%maxPage%)"),
+    NEXT_PAGE_ITEM_DESCRIPTION("§eClick§7 to go forward"),
+
+    PREVIOUS_PAGE_ITEM_NAME("§6Previous page §7(§e%currentPage%§8/§7%maxPage%)"),
+    PREVIOUS_PAGE_ITEM_DESCRIPTION("§eClick§7 to go backward"),
 
     NICKNAME("§9Nickname : §7%nickname%"),
     NICKNAME_ITEM_LORE("§cClick here to revoke your pet"),
@@ -152,50 +156,47 @@ public enum Language {
     }
 
     public void reload() {
-        if (LanguageConfig.getInstance().getMap().containsKey(this.name().toLowerCase())) {
-            this.message = LanguageConfig.getInstance().getMap().get(this.name().toLowerCase());
+        if (LanguageConfig.getInstance().getMap().containsKey(name().toLowerCase())) {
+            message = LanguageConfig.getInstance().getMap().get(name().toLowerCase());
         }
     }
 
     public String getMessage() {
-        String m = Utils.hex(message);
+        String m = message;
 
         m = Utils.applyPlaceholders(null, m);
         return m;
     }
 
     public String getMessagePAPI() {
-        String m = Utils.hex(message);
+        String m = message;
 
         m = Utils.applyPlaceholders(null, m);
         return m;
     }
 
     public Component getComponent() {
-        return Utils.toComponent(Utils.hex(GlobalConfig.getInstance().getPrefix() + getMessage()));
+        return Utils.toComponent(getMessage());
+    }
+
+    public Component getComponentWithPrefix() {
+        return Utils.toComponentWithPrefix(getMessage());
     }
 
     public void sendMessage(Player p) {
-        if (message.isEmpty())
-            return;
-        ((Audience) p).sendMessage(getComponent());
+        if (message.isEmpty()) return;
+        p.sendMessage(getComponentWithPrefix());
     }
 
     public void sendMessage(CommandSender sender) {
-        if (message.isEmpty())
-            return;
-        ((Audience) sender).sendMessage(getComponent());
+        if (message.isEmpty()) return;
+        sender.sendMessage(getComponentWithPrefix());
     }
 
-    public void sendMessageFormated(CommandSender sender, FormatArg... args) {
-        if (message.isEmpty())
-            return;
+    public void sendMessageFormatted(CommandSender sender, FormatArg... args) {
+        if (message.isEmpty()) return;
 
-        String toSend = getMessage();
-        for (FormatArg arg : args) {
-            toSend = arg.applyToString(toSend);
-        }
-        ((Audience) sender).sendMessage(Utils.toComponent(Utils.hex(GlobalConfig.getInstance().getPrefix() + toSend)));
+        sender.sendMessage(Utils.toComponentWithPrefix(getMessageFormatted(args)));
     }
 
     public String getMessageFormatted(FormatArg... args) {
@@ -203,6 +204,12 @@ public enum Language {
         for (FormatArg arg : args) {
             toSend = arg.applyToString(toSend);
         }
+
         return toSend;
     }
+
+    public Component getComponentFormatted(FormatArg... args) {
+        return Utils.toComponent(getMessageFormatted(args));
+    }
+
 }

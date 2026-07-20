@@ -1,108 +1,29 @@
 package fr.nocsy.mcpets.mythicmobs;
 
-import fr.nocsy.mcpets.MCPets;
-import fr.nocsy.mcpets.mythicmobs.conditions.PetExperienceCondition;
-import fr.nocsy.mcpets.mythicmobs.conditions.PetTamingCondition;
-import fr.nocsy.mcpets.mythicmobs.mechanics.*;
-import fr.nocsy.mcpets.mythicmobs.placeholders.PetPlaceholdersManager;
-import fr.nocsy.mcpets.mythicmobs.targeters.TargeterPetFromOwner;
-import fr.nocsy.mcpets.mythicmobs.targeters.TargeterPetOwner;
-import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent;
-import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
-import io.lumine.mythic.bukkit.events.MythicReloadedEvent;
-import io.lumine.mythic.bukkit.events.MythicTargeterLoadEvent;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.event.EventHandler;
+
+import fr.nocsy.mcpets.MCPets;
+
+import io.lumine.mythic.bukkit.events.MythicReloadedEvent;
+import io.lumine.mythic.core.skills.CustomComponentRegistry;
 
 public class MythicListener implements Listener {
 
+    public static final String PLACEHOLDER_PACKAGE = "fr.nocsy.mcpets.mythicmobs.placeholders";
+    public static final String CONDITION_PACKAGE = "fr.nocsy.mcpets.mythicmobs.conditions";
+    public static final String TARGETER_PACKAGE = "fr.nocsy.mcpets.mythicmobs.targeters";
+    public static final String MECHANIC_PACKAGE = "fr.nocsy.mcpets.mythicmobs.mechanics";
+
     @EventHandler
     public void onMythicReload(MythicReloadedEvent e) {
-        // load the placeholders
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                PetPlaceholdersManager.registerPlaceholders();
-            }
-        }.runTaskLater(MCPets.getInstance(), 1L);
+        Bukkit.getScheduler().runTask(MCPets.getInstance(), () -> MCPets.getComponentRegistry()
+            .registerCustomComponent(CustomComponentRegistry.MythicComponentType.PLACEHOLDER, PLACEHOLDER_PACKAGE)
+            .registerCustomComponent(CustomComponentRegistry.MythicComponentType.CONDITION, CONDITION_PACKAGE)
+            .registerCustomComponent(CustomComponentRegistry.MythicComponentType.TARGETER, TARGETER_PACKAGE)
+            .registerCustomComponent(CustomComponentRegistry.MythicComponentType.MECHANIC, MECHANIC_PACKAGE)
+        );
     }
 
-    @EventHandler
-    public void onMythicEventLoad(MythicConditionLoadEvent e) {
-        if (e.getConditionName().equalsIgnoreCase("petExperience")) {
-            PetExperienceCondition cond = new PetExperienceCondition(e.getConfig().getLine(), e.getConfig());
-            e.register(cond);
-        }
-        else if (e.getConditionName().equalsIgnoreCase("petTaming")) {
-            PetTamingCondition cond = new PetTamingCondition(e.getConfig().getLine(), e.getConfig());
-            e.register(cond);
-        }
-    }
-
-    @EventHandler
-    public void onMythicTargeterLoad(MythicTargeterLoadEvent paramMythicTargeterLoadEvent) {
-
-        String str = paramMythicTargeterLoadEvent.getTargeterName();
-
-        if (str.equalsIgnoreCase("PETOWNER")) {
-            paramMythicTargeterLoadEvent.register(new TargeterPetOwner(paramMythicTargeterLoadEvent.getConfig()));
-        }
-        else if (str.equalsIgnoreCase("PETFROMOWNER")) {
-            paramMythicTargeterLoadEvent.register(new TargeterPetFromOwner(paramMythicTargeterLoadEvent.getConfig()));
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onMythicMechanicLoad(MythicMechanicLoadEvent event) {
-        if (event.getMechanicName().equalsIgnoreCase("GivePet")) {
-            GivePetMechanic mechanic = new GivePetMechanic(event.getConfig());
-            event.register(mechanic);
-        }
-        else if (event.getMechanicName().equalsIgnoreCase("SetPet")) {
-            SetPetMechanic mechanic = new SetPetMechanic(event.getConfig());
-            event.register(mechanic);
-        }
-        else if (event.getMechanicName().equalsIgnoreCase("PetFollow")) {
-            PetFollowMechanic mechanic = new PetFollowMechanic(event.getConfig());
-            event.register(mechanic);
-        }
-        else if (event.getMechanicName().equalsIgnoreCase("PetName")) {
-            PetNameMechanic mechanic = new PetNameMechanic(event.getConfig());
-            event.register(mechanic);
-        }
-        else if (event.getMechanicName().equalsIgnoreCase("PetExperience")) {
-            PetExperienceMechanic mechanic = new PetExperienceMechanic(event.getConfig());
-            event.register(mechanic);
-        }
-        else if (event.getMechanicName().equalsIgnoreCase("PetDamage")) {
-            PetDamageMechanic mechanic = new PetDamageMechanic(event.getConfig());
-            event.register(mechanic);
-        }
-        else if (event.getMechanicName().equalsIgnoreCase("PetBuff")) {
-            PetBuffMechanic mechanic = new PetBuffMechanic(event.getConfig());
-            event.register(mechanic);
-        }
-        else if (event.getMechanicName().equalsIgnoreCase("SetLivingPet")) {
-            SetLivingPetMechanic mechanic = new SetLivingPetMechanic(event.getConfig());
-            event.register(mechanic);
-        }
-        else if (event.getMechanicName().equalsIgnoreCase("PetDespawn")) {
-            PetDespawnMechanic mechanic = new PetDespawnMechanic(event.getConfig());
-            event.register(mechanic);
-        }
-        else if (event.getMechanicName().equalsIgnoreCase("EvolvePet")) {
-            EvolvePetMechanic mechanic = new EvolvePetMechanic(event.getConfig());
-            event.register(mechanic);
-        }
-        else if (event.getMechanicName().equalsIgnoreCase("DropPetInventory")) {
-            DropPetInventoryMechanic mechanic = new DropPetInventoryMechanic(event.getConfig());
-            event.register(mechanic);
-        }
-        else if (event.getMechanicName().equalsIgnoreCase("DropPetItem")) {
-            DropPetItemMechanic mechanic = new DropPetItemMechanic(event.getConfig());
-            event.register(mechanic);
-        }
-    }
 }

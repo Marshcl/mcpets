@@ -9,13 +9,13 @@ import lombok.Setter;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 public class Databases {
 
@@ -35,18 +35,24 @@ public class Databases {
 
     private static final String PET_ID_DELIMITER = ",";
 
+    private static final String SKIN_DELIMITER = ":";
+
     public static class ActivePetRecord {
         private final List<String> petIds;
+        private final Map<String, String> skinIds;
         private final long updatedAt;
 
-        public ActivePetRecord(List<String> petIds, long updatedAt) {
+        public ActivePetRecord(List<String> petIds, Map<String, String> skinIds, long updatedAt) {
             this.petIds = petIds;
+            this.skinIds = skinIds;
             this.updatedAt = updatedAt;
         }
 
         /** All active pet IDs stored in this record (may be multiple). */
         public List<String> getPetIds()  { return petIds; }
-        public long         getUpdatedAt() { return updatedAt; }
+        /** Stable skin path id for a given pet ID, or null if the pet had no skin active. */
+        public String getSkinId(String petId) { return skinIds.get(petId); }
+        public long   getUpdatedAt() { return updatedAt; }
     }
 
     public static boolean init() {
@@ -114,7 +120,7 @@ public class Databases {
                     PetStats.remove(uuid);
 
                     for (String seria : playerData.getString("data").split(";;;")) {
-                        PetStats stats = PetStats.unzerialize(seria);
+                        PetStats stats = PetStats.unserialize(seria);
                         if (stats == null)
                             continue;
                         stats.launchTimers();
@@ -176,7 +182,7 @@ public class Databases {
                     PetStats.remove(uuid);
 
                     for (String seria : playerData.getString("data").split(";;;")) {
-                        PetStats stats = PetStats.unzerialize(seria);
+                        PetStats stats = PetStats.unserialize(seria);
                         if (stats == null)
                             continue;
                         stats.launchTimers();
@@ -277,13 +283,17 @@ public class Databases {
 
     /**
      * Upsert the active pets for a player into the dedicated table.
-     * Multiple pet IDs are stored as a comma-delimited list in the pet_id column.
-     * Called synchronously on disconnect (HIGHEST priority) so the record is
-     * committed before Velocity routes the player to the next server.
+     * Each entry is stored as "petId:skinPathId" (or just "petId" if no skin),
+     * comma-delimited in the pet_id column.
      */
-    public static void saveActivePet(UUID uuid, List<String> petIds) {
+    public static void saveActivePet(UUID uuid, List<String> petIds, Map<String, String> skinIds) {
         if (!GlobalConfig.getInstance().isDatabaseSupport()) return;
-        String joined = String.join(PET_ID_DELIMITER, petIds);
+        final List<String> entries = new ArrayList<>();
+        for (String petId : petIds) {
+            String skinId = skinIds != null ? skinIds.get(petId) : null;
+            entries.add(skinId != null ? petId + SKIN_DELIMITER + skinId : petId);
+        }
+        String joined = String.join(PET_ID_DELIMITER, entries);
         long now = System.currentTimeMillis();
         getMySQL().preparedQuery(
                 "INSERT INTO " + activeTable + " (uuid, pet_id, updated_at) VALUES (?, ?, ?) "
@@ -304,11 +314,21 @@ public class Databases {
         try {
             if (rs.next()) {
                 String raw = rs.getString("pet_id");
-                List<String> ids = Arrays.stream(raw.split(PET_ID_DELIMITER))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .collect(Collectors.toList());
-                return new ActivePetRecord(ids, rs.getLong("updated_at"));
+                if (raw == null) return null;
+                List<String> ids = new ArrayList<>();
+                Map<String, String> skinIds = new HashMap<>();
+                for (String entry : raw.split(PET_ID_DELIMITER)) {
+                    entry = entry.trim();
+                    if (entry.isEmpty()) continue;
+                    if (entry.contains(SKIN_DELIMITER)) {
+                        String[] parts = entry.split(SKIN_DELIMITER, 2);
+                        ids.add(parts[0]);
+                        skinIds.put(parts[0], parts[1]);
+                    } else {
+                        ids.add(entry);
+                    }
+                }
+                return new ActivePetRecord(ids, skinIds, rs.getLong("updated_at"));
             }
         } catch (SQLException e) {
             MCPets.getInstance().getLogger().log(Level.SEVERE, "Failed to load active pet record for " + uuid, e);

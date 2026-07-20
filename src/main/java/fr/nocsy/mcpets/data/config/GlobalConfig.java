@@ -1,11 +1,13 @@
 package fr.nocsy.mcpets.data.config;
 
-import fr.nocsy.mcpets.utils.PetAnnouncement;
+import java.util.List;
+import java.util.ArrayList;
+
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import fr.nocsy.mcpets.MCPets;
+import fr.nocsy.mcpets.utils.PetAnnouncement;
 
 public class GlobalConfig extends AbstractConfig {
 
@@ -13,7 +15,7 @@ public class GlobalConfig extends AbstractConfig {
 
     @Getter
     @Setter
-    private boolean worldguardsupport = true;
+    private boolean worldGuardSupport = true;
 
     @Getter
     private String prefix;
@@ -163,8 +165,8 @@ public class GlobalConfig extends AbstractConfig {
             getConfig().set("Mountable", true);
         if (getConfig().get("DistanceTeleport") == null)
             getConfig().set("DistanceTeleport", 30);
-        if (getConfig().get("MaxNameLenght") == null)
-            getConfig().set("MaxNameLenght", 16);
+        if (getConfig().get("MaxNameLength") == null)
+            getConfig().set("MaxNameLength", 16);
         if (getConfig().get("InventorySize") == null)
             getConfig().set("InventorySize", -1);
         if (getConfig().get("PercentHealthOnRespawn") == null)
@@ -258,7 +260,7 @@ public class GlobalConfig extends AbstractConfig {
         dismountOnDamaged = getConfig().getBoolean("DismountOnDamaged");
         spawnPetOnReconnect = getConfig().getBoolean("SpawnPetOnReconnect");
         distanceTeleport = getConfig().getInt("DistanceTeleport");
-        maxNameLength = getConfig().getInt("MaxNameLenght");
+        maxNameLength = getConfig().getInt("MaxNameLength");
         enableClickBackToMenu = getConfig().getBoolean("EnableClickBackToMenu");
         activateBackMenuIcon = getConfig().getBoolean("ActivateBackMenuIcon");
         adaptiveInventory = getConfig().getInt("InventorySize");
@@ -302,7 +304,10 @@ public class GlobalConfig extends AbstractConfig {
         disableFastMountWhileHoldingSignalStick = getConfig().getBoolean("DisableFastMountWhileHoldingSignalStick");
 
         velocityEnabled = getConfig().getBoolean("Velocity.Enabled");
-        velocitySwitchWindow = Math.max(5, getConfig().getInt("Velocity.SwitchWindow"));
+        velocitySwitchWindow = Math.max(5, Math.min(300, getConfig().getInt("Velocity.SwitchWindow")));
+        if (velocityEnabled && !databaseSupport) {
+            MCPets.getLog().warning("[MCPets] : Velocity is enabled but DatabaseSupport is disabled. Cross-server pet sync requires database support.");
+        }
 
         spawnPetAfterServerRestart = getConfig().getBoolean("SpawnPetAfterServerRestart");
         maxActivePets = getConfig().getInt("MaxActivePets");

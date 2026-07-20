@@ -25,6 +25,7 @@ public class EventListener implements Listener {
         listeners.add(new SignalStickListener());
         listeners.add(new PetSkinsMenuListener());
         listeners.add(new VanillaDismountListener());
+        listeners.add(new MountWallClipListener());
 
         listeners.add(new LivingPetsListener());
 
@@ -39,7 +40,9 @@ public class EventListener implements Listener {
             plugin.getServer().getPluginManager().registerEvents(l, plugin);
         }
 
-        if(GlobalConfig.getInstance().isWorldguardsupport())
+        if (GlobalConfig.getInstance().isWorldGuardSupport()) {
             listeners.add(new PetDamageFlagListener());
+        }
     }
+
 }
