@@ -149,7 +149,7 @@ public class PetInteractionMenuListener implements Listener {
             name = name.replace(";;", ";").replace(";;;", ";");
 
 			if (!p.hasPermission("mcpets.nameable")) {
-				p.sendMessage("<white>⃽ <red>Pet naming is locked to paid ranks. Purchase a rank from <yellow>mcheroes.net <red>to unlock!");
+				p.sendMessage("<white>⃽ <red>Pet naming is locked to paid ranks. Purchase a rank from <yellow>Cubees.Net <red>to unlock!");
 				return;
 			}
 
